@@ -126,6 +126,23 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
     }
 
     public void openFile(String path) {
+        File f=new File(path);
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.setDataAndType(Uri.fromFile(f),getMimeType(f.getAbsolutePath()));
+        Intent j = Intent.createChooser(intent, "Choose an application to open with:");
+        startActivity(j);
+    }
 
+    private String getMimeType(String url)
+    {
+        String parts[]=url.split("\\.");
+        String extension=parts[parts.length-1];
+        String type = null;
+        if (extension != null) {
+            MimeTypeMap mime = MimeTypeMap.getSingleton();
+            type = mime.getMimeTypeFromExtension(extension);
+        }
+        return type;
     }
 }
