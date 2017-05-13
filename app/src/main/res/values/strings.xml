@@ -3,4 +3,7 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="dir_updated">Default directory successfully updated.</string>
+    <string name="dir_invalid">Please enter a valid directory.</string>
+    <string name="dir_current">"Current default directory is: \n"</string>
 </resources>

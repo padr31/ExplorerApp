@@ -20,6 +20,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
@@ -41,15 +44,42 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
         setContentView(R.layout.activity_main);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String path = prefs.getString(KEY_PREF_DEFAULT_DIRECTORY, "");
-        if (path.equals("")) {
-            currentPath = Environment.getExternalStorageDirectory().toString();
-        } else {
-            currentPath = path;
-        }
+        String path = prefs.getString(SettingsActivity.DEFAULT_DIRECTORY, "");
 
+        if (new File(path).isDirectory()){
+            currentPath = path;
+        } else {
+            currentPath = Environment.getExternalStorageDirectory().toString();
+        }
         refresh();
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.toolbar_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.item_refresh:
+                refresh();
+                return true;
+            case R.id.item_settings:
+                startSettings();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void startSettings() {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 
     private void refresh() {

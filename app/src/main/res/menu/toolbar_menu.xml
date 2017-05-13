@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <item android:title="Settings"
+        android:checkable="false"
+        android:id="@+id/item_settings"
+        app:showAsAction="never"/>
+
+    <item android:title="Refresh"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_refresh_black_24dp"
+        android:id="@+id/item_refresh" />
+</menu>
