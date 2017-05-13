@@ -57,7 +57,7 @@ public class ListFragment extends Fragment {
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_list, container, false);
 
-        ListView listView = (ListView) getActivity().findViewById(R.id.list_view);
+        ListView listView = (ListView) v.findViewById(R.id.list_view);
 
         String[] fileNames = names;
         if(fileNames == null)

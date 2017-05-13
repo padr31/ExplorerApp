@@ -1,19 +1,31 @@
 package com.treecio.pali.explorerapp;
 
 import android.Manifest;
+import android.content.ActivityNotFoundException;
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.webkit.MimeTypeMap;
+import android.widget.Toast;
 
 import java.io.File;
+import java.net.URLConnection;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements TextFragment.OnFragmentInteractionListener, ListFragment.OnFragmentInteractionListener{
 
@@ -64,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
 
     private void changeFragment(Fragment newFragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(R.anim.enter, R.anim.exit, R.anim.pop_enter, R.anim.pop_exit);
         transaction.replace(R.id.fragment_container, newFragment).commit();
 
 
@@ -72,7 +85,6 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
     public String[] getFileNames(String path){
 
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
 
         File[] files = new File(path).listFiles();
         String[] fileNames;
@@ -86,6 +98,15 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
         }
 
         return fileNames;
+    }
+
+    public void onBackPressed() {
+        File p = new File(currentPath).getParentFile();
+        if(p == null || p == Environment.getExternalStorageDirectory().getParentFile()) {
+            return;
+        } else {
+            changeDirectory(p.toString());
+        }
     }
 
     @Override
@@ -105,5 +126,6 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
     }
 
     public void openFile(String path) {
+
     }
 }
