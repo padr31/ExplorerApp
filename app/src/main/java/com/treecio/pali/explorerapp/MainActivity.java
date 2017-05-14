@@ -1,38 +1,29 @@
 package com.treecio.pali.explorerapp;
-
 import android.Manifest;
-import android.content.ActivityNotFoundException;
-import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.net.Uri;
-import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.FileProvider;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.webkit.MimeTypeMap;
-import android.widget.Toast;
-
 import java.io.File;
-import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements TextFragment.OnFragmentInteractionListener, ListFragment.OnFragmentInteractionListener{
 
-    private static final String KEY_PREF_DEFAULT_DIRECTORY = "defalut";
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 0;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
 
@@ -46,11 +37,12 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String path = prefs.getString(SettingsActivity.DEFAULT_DIRECTORY, "");
 
-        if (new File(path).isDirectory()){
+        if (new File(path).isDirectory()) {
             currentPath = path;
         } else {
             currentPath = Environment.getExternalStorageDirectory().toString();
         }
+
         refresh();
 
     }
@@ -82,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
         startActivity(intent);
     }
 
-    private void refresh() {
+    public void refresh() {
 
         new Thread(new Runnable(){
             @Override
@@ -90,10 +82,10 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
                 String[] names = getFileNames(currentPath);
                 Fragment newFragment;
                 if(names == null) {
-                    newFragment = TextFragment.newInstance("Can't access directory: " + currentPath);
+                    newFragment = TextFragment.newInstance(getString(R.string.dir_no_access) + currentPath);
                 }
                 else if(names.length == 0) {
-                    newFragment = TextFragment.newInstance("Directory is empty: " + currentPath);
+                    newFragment = TextFragment.newInstance(getString(R.string.dir_empty) + currentPath);
                 }
                 else {
                     newFragment = ListFragment.newInstance(names);
@@ -113,8 +105,7 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
     }
 
     public String[] getFileNames(String path){
-
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+        getReadPermissions();
 
         File[] files = new File(path).listFiles();
         String[] fileNames;
@@ -160,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_VIEW);
         intent.setDataAndType(Uri.fromFile(f),getMimeType(f.getAbsolutePath()));
-        Intent j = Intent.createChooser(intent, "Choose an application to open with:");
+        Intent j = Intent.createChooser(intent, getString(R.string.choose_app));
         startActivity(j);
     }
 
@@ -174,5 +165,115 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
             type = mime.getMimeTypeFromExtension(extension);
         }
         return type;
+    }
+
+    private List<File> deleteFiles;
+    public void deleteSelectedItems(List<String> items) {
+        int size = items.size();
+        deleteFiles = new ArrayList<File>();
+
+        for(int i = 0; i < items.size(); i++) {
+            deleteFiles.add(new File(currentPath + "/" + items.get(i)));
+        }
+
+        if(getWritePermissions()) {
+            deleteSelectedFiles(deleteFiles);
+        }
+    }
+
+    private void deleteSelectedFiles(final List<File> deleteFiles) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(
+                this);
+        alert.setTitle(R.string.deletion_title);
+        alert.setMessage(R.string.deletion_confirm);
+        alert.setPositiveButton(R.string.deletion_yes, new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                for(File f : deleteFiles) {
+                    System.out.println(f.getAbsoluteFile());
+                    if(f.isFile())
+                        f.delete();
+                    else if(f.isDirectory()) {
+                        deleteDirectory(f);
+                        f.delete();
+                    }
+
+                }
+                refresh();
+                dialog.dismiss();
+
+            }
+        });
+        alert.setNegativeButton(R.string.deletion_no, new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                deleteFiles.clear();
+                refresh();
+                dialog.dismiss();
+            }
+        });
+
+        alert.show();
+    }
+
+    /**
+     * Delete every file/directory in a directory recursively.
+     * @param f
+     */
+    private void deleteDirectory(File f) {
+        for(File i : f.listFiles()) {
+            if(i.isFile())
+                i.delete();
+            else if(i.isDirectory()) {
+                deleteDirectory(i);
+            }
+        }
+    }
+
+    /**
+     * Requests the permissions if not granted.
+     * @return true if already has permissions otherwise false
+     */
+    public boolean getWritePermissions() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+            return false;
+        }
+        return true;
+    }
+
+    public void getReadPermissions() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE:
+                refresh();
+                break;
+            case MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    deleteSelectedFiles(deleteFiles);
+                }
+                break;
+
+        }
     }
 }

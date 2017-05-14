@@ -6,4 +6,11 @@
     <string name="dir_updated">Default directory successfully updated.</string>
     <string name="dir_invalid">Please enter a valid directory.</string>
     <string name="dir_current">"Current default directory is: \n"</string>
+    <string name="deletion_title">File deletion.</string>
+    <string name="deletion_confirm">Are you sure to delete records?</string>
+    <string name="deletion_yes">YES</string>
+    <string name="deletion_no">NO</string>
+    <string name="choose_app">Choose an application to open with:</string>
+    <string name="dir_no_access">"Can't access directory: "</string>
+    <string name="dir_empty">"Directory is empty: "</string>
 </resources>

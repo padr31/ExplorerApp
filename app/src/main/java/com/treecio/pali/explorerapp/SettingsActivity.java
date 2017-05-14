@@ -25,6 +25,9 @@ public class SettingsActivity extends AppCompatActivity {
         String path = prefs.getString(SettingsActivity.DEFAULT_DIRECTORY, "");
         textView.setText(getString(R.string.dir_current) + path);
 
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
     }
 
     public void setPath(View view) {

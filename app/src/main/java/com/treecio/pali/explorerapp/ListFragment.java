@@ -1,10 +1,16 @@
 package com.treecio.pali.explorerapp;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -13,6 +19,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -24,6 +32,8 @@ import java.io.File;
  * create an instance of this fragment.
  */
 public class ListFragment extends Fragment {
+
+    private List<String> items = new ArrayList<String>();
 
     private OnFragmentInteractionListener mListener;
 
@@ -60,7 +70,11 @@ public class ListFragment extends Fragment {
 
         AbsListView absListView = (AbsListView) v.findViewById(R.id.list_view);
 
+        setupMultiChoiceListener(absListView);
+
         String[] fileNames = names;
+
+
         if(fileNames == null)
             fileNames = new String[]{""};
 
@@ -81,6 +95,66 @@ public class ListFragment extends Fragment {
 
         // Inflate the layout for this fragment
         return v;
+    }
+
+    private void setupMultiChoiceListener(final AbsListView absListView) {
+
+        absListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+        absListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
+
+
+            @Override
+            public void onItemCheckedStateChanged(ActionMode mode, int position,
+                                                  long id, boolean checked) {
+                // Here you can do something when items are selected/de-selected,
+                // such as update the title in the CAB
+                if(checked) {
+                    items.add(absListView.getItemAtPosition(position).toString());
+                    absListView.getChildAt(position).setBackgroundColor(Color.GRAY);
+                } else {
+                    absListView.getChildAt(position).setBackgroundColor(Color.TRANSPARENT);
+                    items.remove(absListView.getItemAtPosition(position).toString());
+                }
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                // Respond to clicks on the actions in the CAB
+                switch (item.getItemId()) {
+                    case R.id.item_delete:
+                        ((MainActivity) getActivity()).deleteSelectedItems(items);
+                        mode.finish(); // Action picked, so close the CAB
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            @Override
+            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                // Inflate the menu for the CAB
+                MenuInflater inflater = mode.getMenuInflater();
+                inflater.inflate(R.menu.context, menu);
+                return true;
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode mode) {
+                // Here you can make any necessary updates to the activity when
+                // the CAB is removed. By default, selected items are deselected/unchecked.
+                for(int i = 0; i < absListView.getChildCount(); i++) {
+                    absListView.getChildAt(i).setBackgroundColor(Color.TRANSPARENT);
+                }
+                items.clear();
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                // Here you can perform updates to the CAB due to
+                // an invalidate() request
+                return false;
+            }
+        });
     }
 
     // TODO: Rename method, update argument and hook method into UI event
