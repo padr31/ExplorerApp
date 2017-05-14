@@ -136,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
     public void onBackPressed() {
         File p = new File(currentPath).getParentFile();
         if(p == null || p == Environment.getExternalStorageDirectory().getParentFile()) {
+            finish();
             return;
         } else {
             changeDirectory(p.toString());
