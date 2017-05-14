@@ -13,4 +13,6 @@
     <string name="choose_app">Choose an application to open with:</string>
     <string name="dir_no_access">"Can't access directory: "</string>
     <string name="dir_empty">"Directory is empty: "</string>
+    <string name="set_dir_title">Default directory</string>
+    <string name="pref_defaultDir_desc">Please enter a valid directory path.</string>
 </resources>

@@ -4,7 +4,9 @@ import android.content.Context;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -17,6 +19,7 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,6 +37,7 @@ import java.util.List;
 public class ListFragment extends Fragment {
 
     private List<String> items = new ArrayList<String>();
+    private List<Integer> positions = new ArrayList<Integer>();
 
     private OnFragmentInteractionListener mListener;
 
@@ -70,16 +74,26 @@ public class ListFragment extends Fragment {
 
         AbsListView absListView = (AbsListView) v.findViewById(R.id.list_view);
 
-        setupMultiChoiceListener(absListView);
-
         String[] fileNames = names;
-
 
         if(fileNames == null)
             fileNames = new String[]{""};
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1, android.R.id.text1, fileNames);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1, android.R.id.text1, fileNames){
+
+            @Override
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+                View v = super.getView(position, convertView, parent);
+
+                if(positions.contains(new Integer(position)))
+                    v.setBackgroundColor(ContextCompat.getColor(getActivity(), android.R.color.darker_gray));
+                else
+                    v.setBackgroundColor(ContextCompat.getColor(getActivity(), android.R.color.transparent));
+                return v;
+            }
+        };
         absListView.setAdapter(adapter);
+
         absListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
@@ -93,11 +107,13 @@ public class ListFragment extends Fragment {
             }
         });
 
+        setupMultiChoiceListener(absListView, adapter);
+
         // Inflate the layout for this fragment
         return v;
     }
 
-    private void setupMultiChoiceListener(final AbsListView absListView) {
+    private void setupMultiChoiceListener(final AbsListView absListView, final ArrayAdapter<String> adapter) {
 
         absListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
         absListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
@@ -110,11 +126,13 @@ public class ListFragment extends Fragment {
                 // such as update the title in the CAB
                 if(checked) {
                     items.add(absListView.getItemAtPosition(position).toString());
-                    absListView.getChildAt(position).setBackgroundColor(Color.GRAY);
+                    positions.add(new Integer(position));
                 } else {
-                    absListView.getChildAt(position).setBackgroundColor(Color.TRANSPARENT);
                     items.remove(absListView.getItemAtPosition(position).toString());
+                    positions.remove(new Integer(position));
                 }
+                adapter.notifyDataSetChanged();
+
             }
 
             @Override
@@ -146,6 +164,7 @@ public class ListFragment extends Fragment {
                     absListView.getChildAt(i).setBackgroundColor(Color.TRANSPARENT);
                 }
                 items.clear();
+                positions.clear();
             }
 
             @Override
