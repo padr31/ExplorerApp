@@ -15,4 +15,5 @@
     <string name="dir_empty">"Directory is empty: "</string>
     <string name="set_dir_title">Default directory</string>
     <string name="pref_defaultDir_desc">Please enter a valid directory path.</string>
+    <string name="implement_listener">" must implement OnFragmentInteractionListener"</string>
 </resources>

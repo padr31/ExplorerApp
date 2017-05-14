@@ -2,7 +2,6 @@ package com.treecio.pali.explorerapp;
 
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
-import com.treecio.pali.explorerapp.R;
 
 public class SettingsFragment extends PreferenceFragment {
     @Override

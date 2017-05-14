@@ -27,7 +27,8 @@ import java.util.List;
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * A simple {@link Fragment} subclass used as the Fragment holding the files in a ListView/GridView
+ * based od the orientation of the phone.
  * Activities that contain this fragment must implement the
  * {@link ListFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
@@ -36,11 +37,17 @@ import java.util.List;
  */
 public class ListFragment extends Fragment {
 
+    /**
+     * Items and their positions when selected by long-press.
+     */
     private List<String> items = new ArrayList<String>();
     private List<Integer> positions = new ArrayList<Integer>();
 
     private OnFragmentInteractionListener mListener;
 
+    /**
+     * Names of folders displayed.
+     */
     private String[] names;
 
     public ListFragment() {
@@ -51,6 +58,7 @@ public class ListFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
+     * @param names Pass the names of files/folders in a directory.
      * @return A new instance of fragment ListFragment.
      */
     public static ListFragment newInstance(String[] names) {
@@ -70,21 +78,25 @@ public class ListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         View v = inflater.inflate(R.layout.fragment_list, container, false);
 
         AbsListView absListView = (AbsListView) v.findViewById(R.id.list_view);
 
         String[] fileNames = names;
 
+        /*
         if(fileNames == null)
-            fileNames = new String[]{""};
+            fileNames = new String[]{""};*/
 
+        //Set up custom adapter which colors the views based on selection.
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1, android.R.id.text1, fileNames){
 
             @Override
             public View getView(int position, View convertView, @NonNull ViewGroup parent) {
                 View v = super.getView(position, convertView, parent);
 
+                //if the view was selected
                 if(positions.contains(new Integer(position)))
                     v.setBackgroundColor(ContextCompat.getColor(getActivity(), android.R.color.darker_gray));
                 else
@@ -92,8 +104,10 @@ public class ListFragment extends Fragment {
                 return v;
             }
         };
+
         absListView.setAdapter(adapter);
 
+        //Set the listener to be able to navigate through derectories and open files
         absListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
@@ -107,12 +121,18 @@ public class ListFragment extends Fragment {
             }
         });
 
+
         setupMultiChoiceListener(absListView, adapter);
 
         // Inflate the layout for this fragment
         return v;
     }
 
+    /**
+     * This methhod adds the long-press multiple choice functionality to the AbsListView.
+     * @param absListView
+     * @param adapter
+     */
     private void setupMultiChoiceListener(final AbsListView absListView, final ArrayAdapter<String> adapter) {
 
         absListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
@@ -122,8 +142,8 @@ public class ListFragment extends Fragment {
             @Override
             public void onItemCheckedStateChanged(ActionMode mode, int position,
                                                   long id, boolean checked) {
-                // Here you can do something when items are selected/de-selected,
-                // such as update the title in the CAB
+
+                //store the values and positions of selected items and remove them if deselected
                 if(checked) {
                     items.add(absListView.getItemAtPosition(position).toString());
                     positions.add(new Integer(position));
@@ -163,6 +183,7 @@ public class ListFragment extends Fragment {
                 for(int i = 0; i < absListView.getChildCount(); i++) {
                     absListView.getChildAt(i).setBackgroundColor(Color.TRANSPARENT);
                 }
+                //They are not selected anymore.
                 items.clear();
                 positions.clear();
             }
@@ -176,7 +197,6 @@ public class ListFragment extends Fragment {
         });
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -190,7 +210,7 @@ public class ListFragment extends Fragment {
             mListener = (OnFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + getString(R.string.implement_listener));
         }
     }
 
@@ -200,18 +220,7 @@ public class ListFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
 }

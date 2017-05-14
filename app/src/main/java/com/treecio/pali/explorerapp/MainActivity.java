@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 0;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
 
+    //Always contains the path to the currently displayed folder.
     public String currentPath;
 
     @Override
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
         if (new File(path).isDirectory()) {
             currentPath = path;
         } else {
+            //Show the externalStorageDirectory if no preference specified
             currentPath = Environment.getExternalStorageDirectory().toString();
         }
 
@@ -56,7 +58,6 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle item selection
         switch (item.getItemId()) {
             case R.id.item_refresh:
                 refresh();
@@ -76,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
 
     public void refresh() {
 
+        //Always get the files at a current directory on a new Thread
         new Thread(new Runnable(){
             @Override
             public void run() {
@@ -96,14 +98,21 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
 
     }
 
+    /**
+     * Change the fragment to another with an animation
+     * @param newFragment the Fragment which will be displayed.
+     */
     private void changeFragment(Fragment newFragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.setCustomAnimations(R.anim.enter, R.anim.exit, R.anim.pop_enter, R.anim.pop_exit);
         transaction.replace(R.id.fragment_container, newFragment).commit();
-
-
     }
 
+    /**
+     * Gets permissions to read and then reads files at specified path.
+     * @param path
+     * @return array of filenames
+     */
     public String[] getFileNames(String path){
         getReadPermissions();
 
@@ -121,6 +130,9 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
         return fileNames;
     }
 
+    /**
+     * Handle goind back - to the parent directory(if applicable)
+     */
     public void onBackPressed() {
         File p = new File(currentPath).getParentFile();
         if(p == null || p == Environment.getExternalStorageDirectory().getParentFile()) {
@@ -146,6 +158,9 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
         refresh();
     }
 
+    /*
+     * Display a chooser with appropriate apps.
+     */
     public void openFile(String path) {
         File f=new File(path);
         Intent intent = new Intent();
@@ -155,6 +170,11 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
         startActivity(j);
     }
 
+    /**
+     * Determine the MimeType from extension.
+     * @param url
+     * @return
+     */
     private String getMimeType(String url)
     {
         String parts[]=url.split("\\.");
@@ -167,7 +187,16 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
         return type;
     }
 
+    /**
+     * The files that are waiting to be deleted.
+     */
     private List<File> deleteFiles;
+
+    /**
+     * Convert filenames to files and store them in the deleteFiles list. Then delete them if there
+     * are appropriate permissions.
+     * @param items List of filenames in directory.
+     */
     public void deleteSelectedItems(List<String> items) {
         int size = items.size();
         deleteFiles = new ArrayList<File>();
@@ -181,6 +210,10 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
         }
     }
 
+    /**
+     * Display alert whether to delete all the selected files.
+     * @param deleteFiles
+     */
     private void deleteSelectedFiles(final List<File> deleteFiles) {
         AlertDialog.Builder alert = new AlertDialog.Builder(
                 this);
@@ -209,6 +242,7 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                //No file is going to be deleted.
                 deleteFiles.clear();
                 refresh();
                 dialog.dismiss();
@@ -223,17 +257,19 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
      * @param f
      */
     private void deleteDirectory(File f) {
-        for(File i : f.listFiles()) {
-            if(i.isFile())
-                i.delete();
-            else if(i.isDirectory()) {
-                deleteDirectory(i);
+        if(f.isDirectory()) {
+            for (File i : f.listFiles()) {
+                if (i.isFile())
+                    i.delete();
+                else if (i.isDirectory()) {
+                    deleteDirectory(i);
+                }
             }
         }
     }
 
     /**
-     * Requests the permissions if not granted.
+     * Requests the write permissions if not granted.
      * @return true if already has permissions otherwise false
      */
     public boolean getWritePermissions() {
@@ -249,6 +285,9 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
         return true;
     }
 
+    /**
+     * Request read permmissions if not granted.
+     */
     public void getReadPermissions() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -261,6 +300,14 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
         }
     }
 
+    /**
+     * If the permission has been granted then:
+     *      1. refresh if it is a read permission
+     *      2. delete files waiting for deletion if it is a write permission
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
@@ -273,7 +320,6 @@ public class MainActivity extends AppCompatActivity implements TextFragment.OnFr
                     deleteSelectedFiles(deleteFiles);
                 }
                 break;
-
         }
     }
 }

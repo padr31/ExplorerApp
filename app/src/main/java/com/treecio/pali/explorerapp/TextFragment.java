@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * A simple {@link Fragment} subclass that shows a text when a directory is not accessible ar empty.
  * Activities that contain this fragment must implement the
  * {@link TextFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
@@ -35,9 +35,9 @@ public class TextFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
+     * @param text Has an argument containing the text to be displayed.
      * @return A new instance of fragment TextFragment.
      */
-    // TODO: Rename and change types and number of parameters
     public static TextFragment newInstance(String text) {
         TextFragment fragment = new TextFragment();
         Bundle args = new Bundle();
@@ -59,15 +59,14 @@ public class TextFragment extends Fragment {
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_text, container, false);
 
+        //set the text
         TextView textView = (TextView) v.findViewById(R.id.text_view);
         textView.setText(mArgText);
-
 
         return v;
 
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -81,7 +80,7 @@ public class TextFragment extends Fragment {
             mListener = (OnFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + R.string.implement_listener);
         }
     }
 
@@ -96,13 +95,8 @@ public class TextFragment extends Fragment {
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
      * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
 }
